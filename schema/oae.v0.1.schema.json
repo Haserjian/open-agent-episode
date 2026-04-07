@@ -1,0 +1,349 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://open-agent-episode.org/schema/oae.v0.1.schema.json",
+  "title": "Open Agent Episode (OAE) v0.1",
+  "description": "Portable, verifiable evidence envelope for one bounded unit of agent work.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "episode_id",
+    "capture_class",
+    "identity",
+    "instruction",
+    "events",
+    "artifacts",
+    "verification"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "oae.v0.1",
+      "description": "Schema version identifier."
+    },
+
+    "episode_id": {
+      "type": "string",
+      "minLength": 8,
+      "description": "Stable identifier for this episode. AgentMesh episodes use ep_ prefix; other producers may use any unique string."
+    },
+    "parent_episode_id": {
+      "type": "string",
+      "description": "If this episode was spawned by a parent (e.g., subagent delegation), the parent's episode_id."
+    },
+
+    "capture_class": {
+      "type": "string",
+      "enum": ["FULL", "HASH_ONLY", "SUMMARY_ONLY", "OPAQUE_VENDOR_REF"],
+      "description": "Declares the fidelity of event/artifact capture. FULL: all events with payload refs. HASH_ONLY: events present but payloads are hash-only references. SUMMARY_ONLY: events summarized, not individually captured. OPAQUE_VENDOR_REF: vendor-specific artifact reference only."
+    },
+    "replay_class": {
+      "type": "string",
+      "enum": ["NONE", "BEST_EFFORT", "BOUNDED", "DETERMINISTIC"],
+      "default": "NONE",
+      "description": "Declared replay fidelity. NONE: no replay support. BEST_EFFORT: replay hints present but non-deterministic. BOUNDED: replay is possible within declared constraints. DETERMINISTIC: replay produces identical outputs given identical inputs."
+    },
+
+    "profiles": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Declared conformance profiles (e.g., 'assay.integrity.v1', 'assay.tool_safety.v1'). Base OAE requires none."
+    },
+
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["producer", "operator"],
+      "description": "Who produced this episode and under what authority.",
+      "properties": {
+        "producer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "name", "version"],
+          "description": "The agent runtime or tool that produced this episode.",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": ["cli", "sdk", "cloud_agent", "ci_job", "proxy"],
+              "description": "Producer category."
+            },
+            "name": { "type": "string", "description": "Producer name (e.g., 'claude-code', 'codex-cli', 'github-actions')." },
+            "version": { "type": "string", "description": "Producer version string." },
+            "vendor": { "type": "string", "description": "Vendor name (e.g., 'anthropic', 'openai', 'github')." }
+          }
+        },
+        "operator": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode"],
+          "description": "The human or service account that initiated the episode.",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["human", "service_account", "unknown"],
+              "description": "Whether a human or automated system initiated this episode."
+            },
+            "handle": { "type": "string", "description": "Operator identifier (e.g., GitHub username). May be redacted." }
+          }
+        },
+        "agent": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "The model/agent instance, if known.",
+          "properties": {
+            "agent_instance_id": { "type": "string" },
+            "model": { "type": "string", "description": "Model identifier (e.g., 'claude-opus-4-6', 'o3')." }
+          }
+        }
+      }
+    },
+
+    "instruction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["surfaces", "effective_digest"],
+      "description": "The instruction surface that governed this episode.",
+      "properties": {
+        "surfaces": {
+          "type": "array",
+          "minItems": 1,
+          "description": "All instruction files/surfaces in effect. Order = declared precedence (highest-precedence last).",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "path", "sha256"],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": ["CLAUDE_MD", "AGENTS_MD", "GITHUB_AGENT_MD", "COPILOT_INSTRUCTIONS", "SYSTEM_PROMPT", "OTHER"],
+                "description": "Instruction surface type."
+              },
+              "path": { "type": "string", "description": "Relative path to the instruction file." },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$",
+                "description": "SHA-256 of the instruction file bytes."
+              },
+              "scope": { "type": "string", "description": "Scope of this surface (e.g., 'repo', 'directory', 'global')." }
+            }
+          }
+        },
+        "effective_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 of the deterministic concatenation of all surface hashes + scopes. Encodes effective policy identity."
+        },
+        "policy_refs": {
+          "type": "array",
+          "description": "References to governance policies applied during this episode.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "sha256"],
+            "properties": {
+              "type": { "type": "string", "description": "Policy type (e.g., 'tool_safety_profile', 'mcp_allowlist')." },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$",
+                "description": "SHA-256 of the policy artifact."
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Ordered execution events. Hash-chained via prev_event_hash when capture_class is FULL.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["event_id", "ts", "kind"],
+        "properties": {
+          "event_id": { "type": "string", "description": "Unique event identifier within this episode." },
+          "prev_event_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "SHA-256 of the previous event's canonical form. Enables omission detection."
+          },
+          "ts": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp of this event."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "SESSION_START",
+              "USER_PROMPT",
+              "MODEL_OUTPUT",
+              "TOOL_CALL",
+              "TOOL_RESULT",
+              "FILE_WRITE",
+              "COMMAND",
+              "TEST_RUN",
+              "CHECKPOINT_SEAL",
+              "SESSION_END"
+            ],
+            "description": "Event type. Stable grammar across producers."
+          },
+          "summary": { "type": "string", "description": "Human-readable event summary." },
+          "payload_ref": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sha256"],
+            "description": "Content-addressed reference to event payload. Payload bytes live outside the OAE object.",
+            "properties": {
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "media_type": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "artifacts": {
+      "type": "array",
+      "description": "Referenced output artifacts (commits, PRs, proof packs, test results, MCP traces).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["GIT_COMMIT", "GIT_PR", "FILESET", "PROOF_PACK", "MCP_TRACE", "OTHER"],
+            "description": "Artifact type."
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "Content-addressed hash of the artifact."
+          },
+          "uri_hint": { "type": "string", "description": "Locator hint (not authoritative — use sha256 for identity)." },
+          "metadata": {
+            "type": "object",
+            "description": "Artifact-type-specific metadata (e.g., commit sha, PR number, pack_id)."
+          }
+        }
+      }
+    },
+
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "External anchors and redaction manifest.",
+      "properties": {
+        "anchors": {
+          "type": "array",
+          "description": "External transparency/timestamping anchors.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["service", "proof_ref"],
+            "properties": {
+              "service": {
+                "type": "string",
+                "enum": ["ASSAY_LEDGER", "RFC3161", "SIGSTORE_REKOR", "OTHER"],
+                "description": "Anchoring service."
+              },
+              "proof_ref": { "type": "string", "description": "Reference to the anchor proof (entry hash, log index, etc.)." }
+            }
+          }
+        },
+        "redactions": {
+          "type": "array",
+          "description": "Manifest of redacted fields. Every redaction must declare path and reason.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "reason"],
+            "properties": {
+              "path": { "type": "string", "description": "JSON pointer or dot-path to the redacted field." },
+              "reason": {
+                "type": "string",
+                "description": "Why this field was redacted (e.g., 'pii', 'secret', 'org_policy')."
+              },
+              "hash_placeholder": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$",
+                "description": "SHA-256 of the original value, if available. Enables tamper detection on redacted fields."
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["integrity", "claims", "verifier"],
+      "description": "Verification results. Follows Assay's integrity-vs-claims split.",
+      "properties": {
+        "integrity": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "N_A"],
+          "description": "Did referenced bytes pass integrity checks (hashes match, chain intact)?"
+        },
+        "claims": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "N_A"],
+          "description": "Did declared governance assertions hold (policy checks, claim evaluations)?"
+        },
+        "verifier": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "description": "The verifier that produced these results.",
+          "properties": {
+            "name": { "type": "string" },
+            "version": { "type": "string" }
+          }
+        },
+        "exit_code": {
+          "type": "integer",
+          "enum": [0, 1, 2, 3],
+          "description": "Assay-compatible exit code. 0=all pass, 1=claims fail, 2=integrity fail, 3=error."
+        },
+        "notes": { "type": "string", "description": "Human-readable verification notes." }
+      }
+    },
+
+    "replay_hints": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Best-effort replay metadata. Fidelity declared by replay_class.",
+      "properties": {
+        "repo": { "type": "string", "description": "Git repository URL." },
+        "commit": { "type": "string", "description": "Git commit SHA at episode start." },
+        "commands": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Shell commands to re-run (best-effort)."
+        },
+        "environment": {
+          "type": "object",
+          "description": "Key environment variables / runtime config (redact secrets)."
+        }
+      }
+    },
+
+    "registry_claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional claims about producer capabilities and profile conformance.",
+      "properties": {
+        "capabilities": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Producer-declared capabilities (e.g., 'mcp_tool_audit', 'file_hash_capture')."
+        }
+      }
+    }
+  }
+}

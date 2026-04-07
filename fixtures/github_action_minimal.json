@@ -1,0 +1,129 @@
+{
+  "schema_version": "oae.v0.1",
+  "episode_id": "gha_run_12345678_attempt_1",
+  "capture_class": "HASH_ONLY",
+  "replay_class": "BOUNDED",
+  "profiles": ["assay.integrity.v1"],
+
+  "identity": {
+    "producer": {
+      "kind": "ci_job",
+      "name": "github-actions",
+      "version": "2.0",
+      "vendor": "github"
+    },
+    "operator": {
+      "mode": "service_account",
+      "handle": "github-actions[bot]"
+    }
+  },
+
+  "instruction": {
+    "surfaces": [
+      {
+        "kind": "OTHER",
+        "path": ".github/workflows/verify.yml",
+        "sha256": "9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d",
+        "scope": "repo"
+      }
+    ],
+    "effective_digest": "0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e"
+  },
+
+  "events": [
+    {
+      "event_id": "evt_001",
+      "ts": "2026-04-06T08:00:00.000Z",
+      "kind": "SESSION_START",
+      "summary": "GitHub Actions workflow 'verify' triggered on push to main"
+    },
+    {
+      "event_id": "evt_002",
+      "prev_event_hash": "1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f",
+      "ts": "2026-04-06T08:00:05.000Z",
+      "kind": "COMMAND",
+      "summary": "Step: agentmesh-action — lineage check PASS"
+    },
+    {
+      "event_id": "evt_003",
+      "prev_event_hash": "2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a",
+      "ts": "2026-04-06T08:00:12.000Z",
+      "kind": "COMMAND",
+      "summary": "Step: assay-verify-action — proof pack verification"
+    },
+    {
+      "event_id": "evt_004",
+      "prev_event_hash": "3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b",
+      "ts": "2026-04-06T08:00:18.000Z",
+      "kind": "CHECKPOINT_SEAL",
+      "summary": "Verification complete: integrity PASS, claims PASS, 3 receipts verified"
+    },
+    {
+      "event_id": "evt_005",
+      "prev_event_hash": "4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c0d1e2f3a4b9c",
+      "ts": "2026-04-06T08:00:20.000Z",
+      "kind": "SESSION_END",
+      "summary": "Workflow complete. Artifacts uploaded."
+    }
+  ],
+
+  "artifacts": [
+    {
+      "type": "PROOF_PACK",
+      "sha256": "2ffc90eb78a1b00829ac073bf94f0ff700573fd5222a5fb21a5ba15ed2145654",
+      "uri_hint": "proof_pack_trace_20260301T055107_9e84bd2a/",
+      "metadata": {
+        "pack_id": "pack_20260301T055107_d86c2abe",
+        "n_receipts": 3,
+        "receipt_integrity": "PASS",
+        "claim_check": "PASS"
+      }
+    },
+    {
+      "type": "OTHER",
+      "uri_hint": "github-actions:Haserjian/assay:verify:12345678",
+      "metadata": {
+        "workflow": "verify",
+        "run_id": "12345678",
+        "conclusion": "success"
+      }
+    }
+  ],
+
+  "evidence": {
+    "anchors": [
+      {
+        "service": "ASSAY_LEDGER",
+        "proof_ref": "pack_root:2ffc90eb78a1b00829ac073bf94f0ff700573fd5222a5fb21a5ba15ed2145654"
+      }
+    ],
+    "redactions": []
+  },
+
+  "verification": {
+    "integrity": "PASS",
+    "claims": "PASS",
+    "verifier": {
+      "name": "assay-verify-action",
+      "version": "1.11.1"
+    },
+    "exit_code": 0,
+    "notes": "CI verification of proof pack. 3 receipts, hash chain intact, 2/2 claims passed."
+  },
+
+  "replay_hints": {
+    "repo": "https://github.com/Haserjian/assay",
+    "commit": "9e84bd2a",
+    "commands": [
+      "gh workflow run verify.yml"
+    ],
+    "environment": {
+      "runner": "ubuntu-22.04",
+      "node_version": "20.11.0"
+    }
+  },
+
+  "registry_claims": {
+    "capabilities": ["proof_pack_verify", "ledger_anchor", "lineage_check"]
+  }
+}

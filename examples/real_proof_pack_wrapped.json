@@ -1,0 +1,87 @@
+{
+  "schema_version": "oae.v0.1",
+  "episode_id": "ep_trace_20260301T055107_9e84bd2a",
+  "capture_class": "HASH_ONLY",
+  "replay_class": "NONE",
+  "profiles": [
+    "assay.integrity.v1"
+  ],
+  "identity": {
+    "producer": {
+      "kind": "sdk",
+      "name": "assay",
+      "version": "1.11.1",
+      "vendor": "haserjian"
+    },
+    "operator": {
+      "mode": "unknown"
+    }
+  },
+  "instruction": {
+    "surfaces": [
+      {
+        "kind": "OTHER",
+        "path": "suite:manual",
+        "sha256": "36bde66f289a35683683b041c6d8f418a5f36607b547da25d00ad55891e80b88",
+        "scope": "suite"
+      }
+    ],
+    "effective_digest": "bdafe112d1be6f225d077ed14748c95223cfe8019c1e05424cc192f17594a9c1"
+  },
+  "events": [
+    {
+      "event_id": "r_a26aa676360d",
+      "ts": "2026-03-01T05:51:07.137079+00:00",
+      "kind": "TOOL_CALL",
+      "summary": "model_call | stub.ainvoke | model:council | provider:langchain"
+    },
+    {
+      "event_id": "r_c4eb9e04631e",
+      "ts": "2026-03-01T05:51:07.137299+00:00",
+      "kind": "TOOL_CALL",
+      "summary": "model_call | council.ainvoke | model:council | provider:langchain"
+    },
+    {
+      "event_id": "r_cb503f9c4045",
+      "ts": "2026-03-01T05:51:07.137813+00:00",
+      "kind": "TOOL_CALL",
+      "summary": "model_call | model:litellm/fake | provider:litellm"
+    }
+  ],
+  "artifacts": [
+    {
+      "type": "PROOF_PACK",
+      "sha256": "2ffc90eb78a1b00829ac073bf94f0ff700573fd5222a5fb21a5ba15ed2145654",
+      "uri_hint": "proof_pack_trace_20260301T055107_9e84bd2a/",
+      "metadata": {
+        "pack_id": "pack_20260301T055107_d86c2abe",
+        "run_id": "trace_20260301T055107_9e84bd2a",
+        "n_receipts": 3,
+        "assurance_level": "L0",
+        "proof_tier": "signed-pack",
+        "mode": "shadow",
+        "signer_id": "assay-local",
+        "signer_pubkey_sha256": "baaf5c953f29e840b0b066c420631367dd837b6992e757b9735639cabcccd13a",
+        "files": {
+          "receipt_pack.jsonl": "5e8309ec889e5e205d00da600262803e67ae32cd269dafde3d2788d1bc285773",
+          "verify_report.json": "6a7122ebef4ecf7d2a488ebba35546791e282a41a408e878febcd8d1ad648bf7",
+          "verify_transcript.md": "0fe258193b18f182a73c77fe59ae32feda4331557d3d13162de6e06dd883ad57"
+        }
+      }
+    }
+  ],
+  "evidence": {
+    "anchors": [],
+    "redactions": []
+  },
+  "verification": {
+    "integrity": "PASS",
+    "claims": "PASS",
+    "verifier": {
+      "name": "assay-oae-export",
+      "version": "0.1.0"
+    },
+    "exit_code": 0,
+    "notes": "Live integrity check: all 3 hashed files match manifest and all expected files are present. Claims inherited from attestation (bytes confirmed unchanged)."
+  }
+}

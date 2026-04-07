@@ -1,0 +1,56 @@
+{
+  "schema_version": "oae.v0.1",
+  "episode_id": "ep_broken_inconsistency_test",
+  "capture_class": "FULL",
+  "replay_class": "BEST_EFFORT",
+  "profiles": [],
+
+  "identity": {
+    "producer": {
+      "kind": "cli",
+      "name": "test-producer",
+      "version": "0.0.1"
+    },
+    "operator": {
+      "mode": "human"
+    }
+  },
+
+  "instruction": {
+    "surfaces": [
+      {
+        "kind": "CLAUDE_MD",
+        "path": "CLAUDE.md",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "scope": "repo"
+      }
+    ],
+    "effective_digest": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+
+  "events": [
+    {
+      "event_id": "evt_001",
+      "ts": "2026-04-06T00:00:00Z",
+      "kind": "SESSION_START",
+      "summary": "test session"
+    }
+  ],
+
+  "artifacts": [
+    {
+      "type": "OTHER"
+    }
+  ],
+
+  "verification": {
+    "integrity": "FAIL",
+    "claims": "PASS",
+    "verifier": {
+      "name": "fake-verifier",
+      "version": "0.0.0"
+    },
+    "exit_code": 0,
+    "notes": "This fixture is intentionally broken: integrity=FAIL but claims=PASS (should be N_A), and exit_code=0 (should be 2). The effective_digest is also wrong."
+  }
+}

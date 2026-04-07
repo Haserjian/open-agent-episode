@@ -26,6 +26,30 @@ jobs:
       - name: Run tests
         run: pytest -q
 
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install package
+        run: pip install -e '.[dev]'
+
+      - name: Verify valid fixtures pass cleanly (exit code 0, no warnings)
+        run: |
+          oae-verify fixtures/claude_minimal.json
+          oae-verify fixtures/codex_minimal.json
+          oae-verify fixtures/github_action_minimal.json
+          oae-verify examples/real_proof_pack_wrapped.json
+
+      - name: Verify broken fixture fails
+        run: |
+          ! oae-verify fixtures/broken_inconsistent.json
+
   schema-validation:
     runs-on: ubuntu-latest
     steps:
@@ -45,4 +69,5 @@ jobs:
             -d fixtures/claude_minimal.json \
             -d fixtures/codex_minimal.json \
             -d fixtures/github_action_minimal.json \
-            -d examples/real_proof_pack_wrapped.json
+            -d examples/real_proof_pack_wrapped.json \
+            -d fixtures/broken_inconsistent.json

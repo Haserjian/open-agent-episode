@@ -88,6 +88,39 @@ PYTHONPATH=src python3 -m assay_oae.export path/to/proof_pack/ -o episode.oae.js
 # If any byte in a manifest-covered file has changed, integrity → FAIL, exit_code → 2.
 ```
 
+## How to verify an OAE artifact
+
+If you receive an OAE JSON file from someone else, there are two separate checks to make.
+
+1. Is the JSON structurally valid for OAE v0.1?
+2. What verdict does the artifact itself declare under `verification`?
+
+```bash
+# Schema validation
+python3 -c "
+import json
+from jsonschema import validate, Draft202012Validator
+schema = json.load(open('schema/oae.v0.1.schema.json'))
+data = json.load(open('episode.oae.json'))
+validate(instance=data, schema=schema, cls=Draft202012Validator)
+print('Schema: VALID')
+"
+
+# Read the declared verification result
+python3 -c "
+import json
+data = json.load(open('episode.oae.json'))
+print(json.dumps(data['verification'], indent=2))
+"
+```
+
+Exit codes follow Assay's verifier contract.
+
+- `0`: integrity and claims passed
+- `1`: integrity passed, claims failed
+- `2`: integrity failed
+- `3`: verifier error
+
 ## Schema
 
 See [`schema/oae.v0.1.schema.json`](schema/oae.v0.1.schema.json).
@@ -100,7 +133,9 @@ See [`schema/oae.v0.1.schema.json`](schema/oae.v0.1.schema.json).
 
 ## v0.1 / v0.2 boundary
 
-**v0.1 ships:** schema, 3 fixtures, one Assay proof-pack exporter, one real wrapped proof pack, live integrity failure on tamper, this README.
+**v0.1 ships:** schema, 3 fixtures, one Assay proof-pack exporter, one real wrapped proof-pack mapping, live integrity failure on tamper, this README.
+
+The repo includes the wrapped OAE example derived from a real proof pack. It does not bundle the original source pack directory itself.
 
 **v0.2 adds (not before ship):** subagent/delegation topology (`child_episode_ids`, delegation edges), external anchor profiles (Rekor, RFC 3161), MCP trace adapter, OpenTelemetry attribute mapping, trust model separation (producer/operator/signer/verifier/anchor identity as distinct concepts), version negotiation (`min_reader_version`).
 

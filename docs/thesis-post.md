@@ -62,7 +62,7 @@ This is not a technical detail. It is the thesis in miniature: portable evidence
 
 The schema, fixtures, and exporter are public at [github.com/Haserjian/open-agent-episode](https://github.com/Haserjian/open-agent-episode).
 
-The repo contains a real proof pack from an Assay verification run, wrapped as OAE. You can run the exporter against an untampered pack and see `integrity: PASS, claims: PASS, exit_code: 0`. Flip one byte in a manifest-covered file, re-export, and see `integrity: FAIL, claims: N_A, exit_code: 2` with a note naming the exact file and the hash mismatch.
+The repo contains a real proof-pack mapping wrapped as OAE. Point the exporter at a local Assay proof pack and you can see `integrity: PASS, claims: PASS, exit_code: 0` for an untampered pack. Flip one byte in a manifest-covered file, re-export, and you get `integrity: FAIL, claims: N_A, exit_code: 2` with a note naming the exact file and the hash mismatch.
 
 CI runs pytest and validates all fixtures against the Draft 2020-12 schema on every push. The alpha is self-defending.
 

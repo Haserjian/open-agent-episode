@@ -50,7 +50,12 @@ def verify_pack_integrity(pack_dir: Path, manifest: dict) -> dict:
     missing = set()
     live_file_hashes = {}
 
-    for rel_path in manifest.get("expected_files", []):
+    expected_files = manifest.get("expected_files")
+    if not isinstance(expected_files, list) or not expected_files:
+        missing.add("manifest.expected_files")
+        expected_files = []
+
+    for rel_path in expected_files:
         if not (pack_dir / rel_path).exists():
             missing.add(rel_path)
 

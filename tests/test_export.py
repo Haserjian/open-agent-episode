@@ -1,5 +1,10 @@
 import json
+import os
 from pathlib import Path
+import subprocess
+import sys
+
+from jsonschema import Draft202012Validator, validate
 
 from assay_oae.export import export_proof_pack_to_oae, sha256_file
 
@@ -106,3 +111,39 @@ def test_export_fails_when_expected_file_is_missing(tmp_path: Path) -> None:
     assert oae["verification"]["integrity"] == "FAIL"
     assert oae["verification"]["claims"] == "N_A"
     assert "pack_signature.sig" in oae["verification"]["notes"]
+
+
+def test_export_fails_when_manifest_omits_expected_files(tmp_path: Path) -> None:
+    pack_dir = tmp_path / "pack"
+    _write_pack(pack_dir)
+
+    manifest_path = pack_dir / "pack_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest.pop("expected_files")
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    oae = export_proof_pack_to_oae(pack_dir)
+
+    assert oae["verification"]["integrity"] == "FAIL"
+    assert oae["verification"]["claims"] == "N_A"
+    assert "manifest.expected_files" in oae["verification"]["notes"]
+
+
+def test_cli_module_exports_schema_valid_oae(tmp_path: Path) -> None:
+    pack_dir = tmp_path / "pack"
+    _write_pack(pack_dir)
+    output_path = tmp_path / "episode.oae.json"
+    env = os.environ.copy()
+    src_dir = Path(__file__).resolve().parents[1] / "src"
+    env["PYTHONPATH"] = str(src_dir)
+
+    subprocess.run(
+        [sys.executable, "-m", "assay_oae.export", str(pack_dir), "-o", str(output_path)],
+        check=True,
+        env=env,
+    )
+
+    schema_path = Path(__file__).resolve().parents[1] / "schema" / "oae.v0.1.schema.json"
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    data = json.loads(output_path.read_text(encoding="utf-8"))
+    validate(instance=data, schema=schema, cls=Draft202012Validator)

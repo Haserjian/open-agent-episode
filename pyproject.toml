@@ -18,6 +18,12 @@ dev = [
   "pytest>=8.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/Haserjian/open-agent-episode"
+Repository = "https://github.com/Haserjian/open-agent-episode"
+Issues = "https://github.com/Haserjian/open-agent-episode/issues"
+Documentation = "https://github.com/Haserjian/open-agent-episode/blob/main/README.md"
+
 [project.scripts]
 assay-oae-export = "assay_oae.export:main"
 
